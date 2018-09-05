@@ -1077,6 +1077,10 @@ spdx-license-ids@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/spdx-license-ids/-/spdx-license-ids-3.0.0.tgz#7a7cd28470cc6d3a1cfe6d66886f6bc430d3ac87"
 
+split-string@^6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/split-string/-/split-string-6.0.0.tgz#6f36e120087ce5d1173eca156c3dd21e97ae534f"
+
 sprintf-js@~1.0.2:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"

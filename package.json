@@ -17,7 +17,8 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "eris": "^0.8.6"
+    "eris": "^0.8.6",
+    "split-string": "^6.0.0"
   },
   "peerDependencies": {
     "erisa": "^0.0.3"
