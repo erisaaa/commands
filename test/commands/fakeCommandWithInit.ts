@@ -1,4 +1,4 @@
-import {Command} from '@erisa_/commands';
+import {Command} from '../../';
 
 export default function(done) {
     return class FakeCommandWithInit extends Command {
