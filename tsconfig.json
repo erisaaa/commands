@@ -7,7 +7,7 @@
         "strictNullChecks": true,
         "esModuleInterop": true,
     },
-    "files": [
-        "src"
+    "include": [
+        "src/"
     ]
 }
