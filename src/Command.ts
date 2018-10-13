@@ -1,6 +1,6 @@
 import Context from './Context';
 import SubCommand from './SubCommand';
-import {ICommandPermissions} from './';
+import {ICommandPermissions, ICommandOpts} from './';
 
 export default abstract class Command {
     name?: string;
@@ -13,6 +13,7 @@ export default abstract class Command {
     aliases?: string[];
     category?: string;
     permissions?: ICommandPermissions;
+    opts?: ICommandOpts;
     readonly subcommands: SubCommand[] = [];
 
     // constructor(readonly client: Erisa) {}

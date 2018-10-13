@@ -1,11 +1,14 @@
 import Eris from 'eris';
-import parseArgs from './parseArgs';
-import { Erisa } from 'erisa';
+import {parseArgs, parseOpts} from './parseArgs';
+import Command from './Command';
+import {Erisa} from 'erisa';
 
 export default class Context extends Eris.Message {
     public args: string[];
     public cmd: string;
     public suffix: string;
+    public opts: { [key: string]: any };
+    public operands: string[];
     public me?: Eris.Member;
 
     protected _client: Erisa;
@@ -13,11 +16,26 @@ export default class Context extends Eris.Message {
     constructor(data, client) {
         super(data, client);
 
-        const parsed: [true, string] = client.extensions.commands.testPrefix(this.content);
-        const {args, cmd, suffix} = parseArgs(parsed[1]);
+        const parsed: [false] | [true, string] = client.extensions.commands.testPrefix(this.content);
+
+        if (!parsed[0]) throw new Error('Context content does not match a known prefix');
+
+        const {args, cmd, suffix} = parseArgs(parsed[1] as string);
         this.args = args;
         this.cmd = cmd;
         this.suffix = suffix;
+
+        const command: Command | undefined = client.extensions.commands.get(cmd);
+
+        if (command && command.opts) {
+            const opts = parseOpts(this.content, command.opts);
+
+            this.opts = opts;
+            this.operands = opts._;
+        } else {
+            this.opts = {};
+            this.operands = [];
+        }
 
         this.me = this.guild ? this.guild.members.get(client.user.id) : undefined;
     }

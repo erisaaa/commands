@@ -1,6 +1,6 @@
 import Command from './Command';
 import Context from './Context';
-import {ICommandPermissions} from './';
+import {ICommandPermissions, ICommandOpts} from './';
 
 interface ISubCommandOptions {
     name?: string;
@@ -12,6 +12,7 @@ interface ISubCommandOptions {
     hidden?: boolean;
     aliases?: string[];
     permissions?: ICommandPermissions;
+    opts?: ICommandOpts;
 }
 
 export default class SubCommand implements Command {
@@ -24,6 +25,7 @@ export default class SubCommand implements Command {
     hidden?: boolean;
     aliases?: string[];
     permissions?: ICommandPermissions;
+    opts?: ICommandOpts;
     readonly subcommands: SubCommand[] = [];
     main: (ctx: Context) => Promise<any>;
 
@@ -37,6 +39,7 @@ export default class SubCommand implements Command {
         this.hidden = options.hidden || false;
         this.aliases = options.aliases || [];
         this.permissions = options.permissions;
+        this.opts = options.opts;
         this.main = main;
     }
 }

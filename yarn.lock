@@ -510,6 +510,11 @@ get-stream@^3.0.0:
   resolved "https://registry.yarnpkg.com/get-stream/-/get-stream-3.0.0.tgz#8e943d1358dc37555054ecbe2edb05aa174ede14"
   integrity sha1-jpQ9E1jcN1VQVOy+LtsFqhdO3hQ=
 
+getopts@^2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/getopts/-/getopts-2.2.1.tgz#68120d77abf420e1ade52291977ce050f33ce54e"
+  integrity sha512-ga4ofUeKxyViBrNaO1asJZSG4JEbzqfKyYhHzDQkVrjgYR8WD+2RBkziKlkcv9JvHRgmjbMQWP3bjlSkiH57sg==
+
 glob@7.1.2:
   version "7.1.2"
   resolved "https://registry.yarnpkg.com/glob/-/glob-7.1.2.tgz#c19c9df9a028702d678612384a6552404c636d15"

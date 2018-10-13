@@ -4,19 +4,17 @@ import Context from './Context';
 import Holder from './Holder';
 import {default as defaultHelp} from './defaultHelp';
 
-export {default as SubCommand, decorator as subcommand} from './SubCommand';
-export {default as Context, ContextDestinations, PermissionTargets} from './Context';
-export {default as Command} from './Command';
-export {default as Holder} from './Holder';
-export {default as parseArgs} from './parseArgs';
-export {default as Paginator} from './Paginator';
-export {default as Constants} from './Constants';
-export const DefaultHelp = defaultHelp; // tslint:disable-line variable-name
-
 export interface ICommandPermissions {
     self: string | string[];
     author: string | string[];
     both: string | string[];
+}
+
+export interface ICommandOpts {
+    defaults?: { [key: string]: any };
+    boolean?: string[];
+    string?: string[];
+    unknown?(option: string): boolean;
 }
 
 interface RawPacket {
@@ -58,7 +56,6 @@ export default function setup(erisa: Erisa, options: CommandHandlerOptions): [Ma
     };
     const holder = erisa.extensions.commands = new Holder(erisa, mergedOpts.prefixes, mergedOpts.owner);
 
-    if (!erisa.eventNames().includes('rawWS')) erisa.on('rawWS', erisa.handleEvent('rawWS')); // Needed so that Eris fires rawWS events at all.
     if (mergedOpts.defaultHelp) holder.add<defaultHelp>(defaultHelp, 'help');
 
     return [
@@ -81,8 +78,10 @@ export default function setup(erisa: Erisa, options: CommandHandlerOptions): [Ma
         [
             'ready',
             async function handler({erisa: client}) {
-                await holder.loadAll(mergedOpts.commandDirectory, true);
-                client.emit('erisa.commands.loaded');
+                if (mergedOpts.autoLoad) {
+                    await holder.loadAll(mergedOpts.commandDirectory, true);
+                    client.emit('erisa.commands.loaded');
+                }
             }
         ]
     ];
