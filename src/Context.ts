@@ -40,7 +40,7 @@ export default class Context extends Eris.Message {
         this.me = this.guild ? this.guild.members.get(client.user.id) : undefined;
     }
 
-    get guild(): Eris.Guild | undefined {
+    get guild() {
         return this.channel instanceof Eris.GuildChannel ? this.channel.guild : undefined;
     }
 
@@ -89,6 +89,14 @@ export default class Context extends Eris.Message {
     get isBotOwner() {
         return this.author.id === this._client.extensions.holder.owner;
     }
+}
+
+export class GuildContext extends Context {
+    guild: Eris.Guild;
+}
+
+export class DMContext extends Context {
+    guild: undefined;
 }
 
 export type ContextDestinations = 'channel' | 'author';
