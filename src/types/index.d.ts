@@ -1,16 +1,16 @@
 declare module 'split-string' {
-    interface AST {
-        type: 'string';
-        nodes: any[];
+    interface ASTNode {
+        type: 'root' | 'bracket';
+        nodes: ASTNode[];
         stash: string[];
     }
 
     interface State {
         input: string;
         separator: string;
-        stack: AST[];
+        stack: ASTNode[];
         bos(): boolean;
-        eoss(): boolean;
+        eos(): boolean;
         prev(): string;
         next(): string;
     }
@@ -18,7 +18,7 @@ declare module 'split-string' {
     interface Options {
         brackets?: { [key: string]: string } | boolean;
         quotes?: string[] | boolean;
-        separator: string;
+        separator?: string;
         strict?: boolean;
         keep?(value: string, state: State): boolean;
     }
