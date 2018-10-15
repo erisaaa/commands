@@ -93,10 +93,12 @@ export default class Context extends Eris.Message {
 
 export class GuildContext extends Context {
     guild: Eris.Guild;
+    me: Eris.Member;
 }
 
 export class DMContext extends Context {
     guild: undefined;
+    me: undefined;
 }
 
 export type ContextDestinations = 'channel' | 'author';
