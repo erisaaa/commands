@@ -5,9 +5,9 @@ import Holder from './Holder';
 import {default as defaultHelp} from './defaultHelp';
 
 export interface ICommandPermissions {
-    self: string | string[];
-    author: string | string[];
-    both: string | string[];
+    self?: string | string[];
+    author?: string | string[];
+    both?: string | string[];
 }
 
 export interface ICommandOpts {
