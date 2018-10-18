@@ -1,5 +1,5 @@
 export {default as SubCommand, decorator as subcommand} from './src/SubCommand';
-export {default as Context, ContextDestinations, PermissionTargets} from './src/Context';
+export {default as Context, ContextDestinations, PermissionTargets, GuildContext, DMContext} from './src/Context';
 export {default as Command} from './src/Command';
 export {default as Holder} from './src/Holder';
 export {parseArgs, parseOpts} from './src/parseArgs';
