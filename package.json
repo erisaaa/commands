@@ -1,12 +1,15 @@
 {
   "name": "@erisa/commands",
-  "version": "0.0.3-1",
+  "version": "0.0.3-2",
   "description": "The default commands framework for Erisa.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "https://github.com/erisaaa/commands",
   "author": "Ovyerus <iamovyerus@gmail.com>",
   "license": "MIT",
+  "files": [
+    "dist/"
+  ],
   "scripts": {
     "test": "mocha",
     "coverage": "nyc mocha",
