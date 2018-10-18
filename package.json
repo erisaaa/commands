@@ -1,6 +1,6 @@
 {
   "name": "@erisa/commands",
-  "version": "0.0.3-0",
+  "version": "0.0.3-1",
   "description": "The default commands framework for Erisa.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -21,8 +21,8 @@
     "split-string": "^6.0.0"
   },
   "peerDependencies": {
-    "erisa": "^0.0.3",
-    "eris": "^0.9.0"
+    "eris": "^0.9.0",
+    "erisa": "^0.0.3"
   },
   "devDependencies": {
     "@types/chai": "^4.1.6",
