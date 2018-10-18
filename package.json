@@ -17,12 +17,12 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "eris": "^0.9.0",
     "getopts": "^2.2.1",
     "split-string": "^6.0.0"
   },
   "peerDependencies": {
-    "erisa": "^0.0.3"
+    "erisa": "^0.0.3",
+    "eris": "^0.9.0"
   },
   "devDependencies": {
     "@types/chai": "^4.1.6",
