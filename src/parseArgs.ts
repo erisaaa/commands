@@ -4,11 +4,6 @@ import {ICommandOpts} from './';
 
 const IS_QUOTED = /^(["']).*\1$/;
 
-interface ParsedOptions {
-    _: string[];
-    [key: string]: any;
-}
-
 interface ParsedArguments {
     args: string[];
     cmd: string;
@@ -39,6 +34,6 @@ export function parseArgs(text: string): ParsedArguments {
     };
 }
 
-export function parseOpts(text: string, options: ICommandOpts): ParsedOptions {
+export function parseOpts(text: string, options: ICommandOpts) {
     return getopts(splitQuotes(text), options);
 }
