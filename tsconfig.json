@@ -10,6 +10,7 @@
         "declaration": true
     },
     "include": [
+        "index.ts",
         "src/"
     ]
 }
