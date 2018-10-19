@@ -25,7 +25,7 @@ function splitQuotes(text: string): string[] {
 export function parseArgs(text: string): ParsedArguments {
     const [cmd, ...tmp] = text.split(' ');
     const suffix = tmp.join(' ').trim();
-    const args = splitQuotes(suffix);
+    const args = splitQuotes(suffix).filter(v => v);
 
     return {
         args,
