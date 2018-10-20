@@ -29,6 +29,7 @@ interface CommandHandlerOptionsOptionals {
     autoLoad?: boolean;
     defaultHelp?: boolean;
     contextClass?: typeof Context;
+    debug?: boolean;
 }
 
 interface CommandHandlerOptionsRequired {
@@ -42,19 +43,17 @@ const defaults: CommandHandlerOptionsOptionals = {
     commandDirectory: './commands',
     autoLoad: true,
     defaultHelp: true,
-    contextClass: Context
+    contextClass: Context,
+    debug: false
 };
 
 export default function setup(erisa: Erisa, options: CommandHandlerOptions): [Matchable, MiddlewareHandler][] {
-    const mergedOpts = {
-        commandDirectory: (options.commandDirectory || defaults.commandDirectory)!,
-        autoLoad: (options.autoLoad !== undefined ? options.autoLoad : defaults.autoLoad)!,
-        defaultHelp: (options.defaultHelp !== undefined ? options.defaultHelp : defaults.defaultHelp)!,
-        contextClass: (options.contextClass || defaults.contextClass)!,
-        owner: options.owner,
-        prefixes: options.prefixes
-    };
-    const holder = erisa.extensions.commands = new Holder(erisa, mergedOpts.prefixes, mergedOpts.owner);
+    const mergedOpts: CommandHandlerOptions = {...defaults, ...options};
+    const holder = erisa.extensions.commands = new Holder(erisa, {
+        prefixes: mergedOpts.prefixes,
+        owner: mergedOpts.owner,
+        debug: mergedOpts.debug!
+    });
 
     if (mergedOpts.defaultHelp) holder.add<defaultHelp>(defaultHelp, 'help');
 
@@ -65,13 +64,13 @@ export default function setup(erisa: Erisa, options: CommandHandlerOptions): [Ma
                 if (packet.op !== Constants.GatewayOPCodes.EVENT || packet.t !== 'MESSAGE_CREATE' ||
                     !packet.d.content || !holder.testPrefix(packet.d.content)[0]) return;
 
-                const ctx = new mergedOpts.contextClass(packet.d, client);
+                const ctx = new mergedOpts.contextClass!(packet.d, client);
 
                 try {
                     await holder.run(ctx);
                     client.emit('erisa.commands.run', ctx);
                 } catch (err) {
-                    await ctx.send(`There was an error when trying to run your command:\n${err}`);
+                    await ctx.send(`There was an error when trying to run your command:\n${mergedOpts.debug ? err.stack : err}`);
                 }
             }
         ],
@@ -79,7 +78,7 @@ export default function setup(erisa: Erisa, options: CommandHandlerOptions): [Ma
             'ready',
             async function handler({erisa: client}) {
                 if (mergedOpts.autoLoad) {
-                    await holder.loadAll(mergedOpts.commandDirectory, true);
+                    await holder.loadAll(mergedOpts.commandDirectory!, true);
                     client.emit('erisa.commands.loaded');
                 }
             }

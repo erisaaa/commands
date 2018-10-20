@@ -29,8 +29,19 @@ export default class Holder {
     readonly modules: Map<string, string[]> = new Map<string, string[]>();
     public loadCommands: boolean = true;
     public useCommands: boolean = false;
+    public prefixes: (string | RegExp)[];
+    public owner: string;
+    public debug: boolean;
 
-    constructor(readonly client: Erisa, public prefixes: (string | RegExp)[], public owner: string) {}
+    constructor(readonly client: Erisa, options: {
+        prefixes: (string | RegExp)[];
+        owner: string;
+        debug: boolean;
+    }) {
+        this.prefixes = options.prefixes;
+        this.owner = options.owner;
+        this.debug = options.debug;
+    }
 
     /**
      * Loads all the commands found within a given directory.
