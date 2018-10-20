@@ -186,10 +186,14 @@ export default class Holder {
     handlePermissions(cmd: Command, ctx: Context): [true] | [false, PermissionTargets, string] {
         if (!cmd.permissions) return [true];
 
-        const permChecks = {
-            both: [] as string[],
-            author: [] as string[],
-            self: [] as string[]
+        const permChecks: {
+            both: string[];
+            author: string[];
+            self: string[];
+        } = {
+            both: [],
+            author: [],
+            self: []
         };
 
         for (const type of ['both', 'author', 'self']) {
@@ -198,6 +202,8 @@ export default class Holder {
                 : type === 'author'
                     ? 'author'
                     : 'self';
+
+            if (!cmd.permissions[type]) continue;
 
             if (Array.isArray(cmd.permissions[type]))
                 permChecks[type] = cmd.permissions[type].filter(perm => ctx.hasPermission(perm, target));
