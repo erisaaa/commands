@@ -222,49 +222,54 @@ export default class Holder {
                 permChecks[type].push(cmd.permissions[type]);
         }
 
-        interface PermTuples {
-            both: [any, any];
-            author: [any, any];
-            self: [any, any];
-        }
+        // Array of [command permissions, actual permissions] is the corresponding field for the command exists, otherwise null.
+        let scope: string = '';
+        const totalPerms: {
+            both: [string | string[], string[]] | null;
+            author: [string | string[], string[]] | null;
+            self: [string | string[], string[]] | null;
+        } = {
+            both: (cmd.permissions.both && cmd.permissions.both.length) ? [cmd.permissions.both, permChecks.both] : null,
+            author: (cmd.permissions.author && cmd.permissions.author.length) ? [cmd.permissions.author, permChecks.author] : null,
+            self: (cmd.permissions.self && cmd.permissions.self.length) ? [cmd.permissions.self, permChecks.self] : null
+        };
+        const allEqual = Object.entries(totalPerms).filter(([, value]) => value) // Filter out null values.
+            .reduce((m, [key, value]) => {
+                if (value === null) return m;
 
-        const zip = rows => rows[0].map((_, c) => rows.map(row => row[c]));
+                const cmdPerms: string[] = (Array.isArray(value[0]) ? value[0] : [value[0]]).sort();
+                const actualPerms = value[1].sort();
 
-        const zippedPerms: PermTuples = ['both', 'author', 'self'].map(k =>
-            [cmd.permissions![k] || null, permChecks[k] || null, k]
-        ).reduce((m, [x, y, k]) => {
-            m[k] = [Array.isArray(x) ? x : [x], y];
-            return m;
-        }, {} as PermTuples);
-        const allEqual = Object.entries(zippedPerms).reduce((m, [, [cPerm, uPerm]]) => {
-            if (!cPerm) return m;
-            else if (!uPerm || cPerm.length !== uPerm.length) return false;
+                if (actualPerms.length !== cmdPerms.length) {
+                    scope = key;
+                    return false;
+                }
 
-            for (const [c, u] of zip([cPerm.sort(), uPerm.sort()]))
-                if (c !== u) return false;
+                for (const perm of cmdPerms)
+                    if (!actualPerms.includes(perm)) {
+                        scope = key;
+                        return false;
+                    }
 
-            // If `m` was false before, this will continue to be false all the way through.
-            return m && true;
-        }, true);
+                return m;
+            }, true);
 
         if (allEqual) return [true];
         else {
-            const missingScope: PermissionTargets = Object.entries(zippedPerms).find(([, [cPerm, uPerm]]) => {
-                for (const [c, u] of zip([cPerm.sort(), uPerm.sort()]))
-                    if (c !== u) return true;
+            const perms: [string | string[], string[]] = totalPerms[scope];
+            const cmdPerms: string[] = (Array.isArray(perms[0]) ? perms[0] : [perms[0]]).sort();
+            const actualPerms = perms[1].sort();
+            let missingPerm: string = '';
 
-                return false;
-            })![0] as any;
+            for (const perm of cmdPerms)
+                if (!actualPerms.includes(perm)) {
+                    missingPerm = perm;
+                    break;
+                }
 
-            const missingPerm: string = zippedPerms[missingScope].find(([cPerm, uPerm]) => {
-                for (const [c, u] of zip([cPerm.sort(), uPerm.sort()]))
-                    if (c !== u) return true;
+            if (!missingPerm) throw new Error(`Unable to find perm for scope ${scope}. This shouldn't happen, please report it.`);
 
-                // This should never be reached
-                throw new Error('Unable to find missingPerm in missingScope.');
-            });
-
-            return [false, missingScope, missingPerm];
+            return [false, scope as PermissionTargets, missingPerm];
         }
     }
 
