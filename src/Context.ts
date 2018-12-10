@@ -87,7 +87,7 @@ export default class Context extends Eris.Message {
     }
 
     get isBotOwner() {
-        return this.author.id === this._client.extensions.holder.owner;
+        return this.author.id === this._client.extensions.commands.owner;
     }
 }
 
