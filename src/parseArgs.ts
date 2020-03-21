@@ -18,7 +18,7 @@ function splitQuotes(text: string): string[] {
 }
 
 /**
- * Parses given text into an arguent format used by commands.
+ * Parses given text into an argument format used by commands.
  *
  * @param text String to parse.
  */

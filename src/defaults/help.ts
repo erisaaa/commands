@@ -1,11 +1,11 @@
 import {Erisa} from 'erisa';
-import Command from './Command';
-import Context from './Context';
-import Paginator from './Paginator';
+import Command from '../Command';
+import Context from '../Context';
+import Paginator from '../Paginator';
 
-export default class Help extends Command {
-    public overview = 'Get help for commands.';
-    public aliases = ['commands'];
+export class Help extends Command {
+    overview = 'Get help for commands.';
+    aliases = ['commands'];
 
     constructor(readonly client: Erisa) {
         super();

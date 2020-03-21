@@ -1,6 +1,17 @@
-# @erisa/commands
+# Erisa Commands
 
-The command system module built for the [Erisa](/erisa) framework.
+A robust and customisable command system built for the [Erisa](https://github.com/erisaaa/erisa) framework,
+designed to provide an excellent base that covers 95% of needs for bots.
+
+## Installation 
+```
+npm install @erisa/commands
+```
+
+If you haven't already, you'll also need to install [Erisa](https://github.com/erisaaa/erisa).
+```
+npm install erisa`
+```
 
 ## Basic Usage
 ```ts
@@ -9,7 +20,7 @@ import commands from '@erisa/commands';
 
 const bot = new Erisa('token');
 
-bot.useTuples(commands(erisa, {
+bot.use(commands(erisa, {
     owner: 'your id',
     prefixes: []
 }))

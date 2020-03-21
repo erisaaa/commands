@@ -2,6 +2,9 @@ import Eris from 'eris';
 import {parseArgs, parseOpts} from './parseArgs';
 import Command from './Command';
 import {Erisa} from 'erisa';
+import { PrefixParserResult, ContextMeta } from './types';
+import {PrefixMatchException} from './exceptions';
+import { RawPacket } from '.';
 
 export default class Context extends Eris.Message {
     public args: string[];
@@ -9,21 +12,29 @@ export default class Context extends Eris.Message {
     public suffix: string;
     public opts: { [key: string]: any };
     public operands: string[];
-    public me?: Eris.Member;
+    public meta?: ContextMeta;
+    public valid?: boolean = true;
 
     protected _client: Erisa;
 
-    constructor(data, client) {
+    constructor(data: RawPacket, client: Erisa) {
         super(data, client);
 
-        const parsed: [false] | [true, string] = client.extensions.commands.testPrefix(this.content);
+        const preMeta = data.meta
+            ? data.meta.reduce((prev, curr) => ({...prev, ...curr}), {})
+            : {};
+        const [passed, cleaned, meta]: PrefixParserResult = client.extensions.commands.testPrefix(this.content);
 
-        if (!parsed[0]) throw new Error('Context content does not match a known prefix');
+        if (!passed) {
+            this.valid = false;
+            return;
+        }
 
-        const {args, cmd, suffix} = parseArgs(parsed[1] as string);
+        const {args, cmd, suffix} = parseArgs(cleaned!);
         this.args = args;
         this.cmd = cmd;
         this.suffix = suffix;
+        this.meta = {...preMeta, ...meta};
 
         const command: Command | undefined = client.extensions.commands.get(cmd);
 
@@ -36,12 +47,14 @@ export default class Context extends Eris.Message {
             this.opts = {};
             this.operands = [];
         }
-
-        this.me = this.guild ? this.guild.members.get(client.user.id) : undefined;
     }
 
     get guild() {
         return this.channel instanceof Eris.GuildChannel ? this.channel.guild : undefined;
+    }
+
+    get me() {
+        return this.guild ? this.guild.members.get(this._client.user.id) : undefined;
     }
 
     async send(content: Eris.MessageContent, destination?: ContextDestinations): Promise<Eris.Message>;

@@ -2,7 +2,8 @@ import {Constants} from 'eris';
 import {Erisa, Matchable, MiddlewareHandler} from 'erisa';
 import Context from './Context';
 import Holder from './Holder';
-import {default as defaultHelp} from './defaultHelp';
+import * as defaults from './defaults';
+import { PrefixParser, PreParser, PreParserMeta, CommandErrorHandler } from './types';
 
 export interface ICommandPermissions {
     self?: string | string[];
@@ -17,19 +18,25 @@ export interface ICommandOpts {
     unknown?(option: string): boolean;
 }
 
-interface RawPacket {
+export interface RawPacket {
     op: number;
     t?: string;
     d?: any;
     s?: number;
+    meta?: PreParserMeta[];
 }
 
-interface CommandHandlerOptionsOptionals {
+interface CommandHandlerOptionsOptionals<C extends Context = Context> {
     commandDirectory?: string;
     autoLoad?: boolean;
     defaultHelp?: boolean;
-    contextClass?: typeof Context;
     debug?: boolean;
+    overrides?: {
+        contextClass?: typeof C;
+        errorHandler?: CommandErrorHandler;
+        prefixParser?: PrefixParser;
+        preParsers?: PreParser[];
+    };
 }
 
 interface CommandHandlerOptionsRequired {
@@ -37,48 +44,75 @@ interface CommandHandlerOptionsRequired {
     prefixes: (string | RegExp)[];
 }
 
-type CommandHandlerOptions = CommandHandlerOptionsOptionals & CommandHandlerOptionsRequired;
+type CommandHandlerOptions<C extends Context> = CommandHandlerOptionsOptionals<C> & CommandHandlerOptionsRequired;
 
-const defaults: CommandHandlerOptionsOptionals = {
+const optionDefaults: CommandHandlerOptionsOptionals<any> = {
     commandDirectory: './commands',
     autoLoad: true,
     defaultHelp: true,
-    contextClass: Context,
     debug: false
 };
 
-export default function setup(erisa: Erisa, options: CommandHandlerOptions): [Matchable, MiddlewareHandler][] {
-    const mergedOpts: CommandHandlerOptions = {...defaults, ...options};
+export default function setup<C extends Context = Context>(erisa: Erisa, options: CommandHandlerOptions<C>): [Matchable, MiddlewareHandler][] {
+    const opts: CommandHandlerOptions<C> = {...optionDefaults, ...options};
+    const {preParsers, prefixParser, errorHandler, contextClass} = opts.overrides || {} as Required<CommandHandlerOptionsOptionals<C>>['overrides'];
     const holder = erisa.extensions.commands = new Holder(erisa, {
-        prefixes: mergedOpts.prefixes,
-        owner: mergedOpts.owner,
-        debug: mergedOpts.debug!
+        prefixes: opts.prefixes,
+        owner: opts.owner,
+        debug: opts.debug!,
+        prefixParser
     });
 
-    if (mergedOpts.defaultHelp) holder.add<defaultHelp>(defaultHelp, 'help');
+    if (opts.defaultHelp) holder.add<defaults.Help>(defaults.Help, 'help');
 
     return [
         [
+            // Use rawWS event instead on onMessage so we get raw packet data, allowing us to create
+            // a Context object (which inherits from Message) without having to scrape together all the
+            // packet data from that and then end up recreating another instance of the same message.
             'rawWS',
             async function handler({erisa: client, event}, packet: RawPacket) {
+                // Make sure that
                 if (packet.op !== Constants.GatewayOPCodes.EVENT || packet.t !== 'MESSAGE_CREATE' ||
-                    !packet.d.content || !holder.testPrefix(packet.d.content)[0]) return;
+                    !packet.d.content) return;
 
-                const ctx = new mergedOpts.contextClass!(packet.d, client);
+                // If the user has supplied any preparsers, apply them all to the packet content.
+                if (preParsers && preParsers.length) {
+                    const metas: PreParserMeta[] = [];
+                    let {content} = packet.d;
+
+                    for (const parser of preParsers) {
+                        const [tmp, meta] = parser(content);
+                        content = tmp;
+
+                        if (meta) metas.push(meta);
+                    }
+
+                    if (!holder.testPrefix(content)[0]) return;
+                    else {
+                        packet.d.content = content;
+                        packet.d.meta = metas;
+                    }
+                } else if (!holder.testPrefix(packet.d.content)[0]) return;
+
+                const ctx = new (contextClass || Context)(packet.d, client);
+
+                if (!ctx.valid) return;
 
                 try {
                     await holder.run(ctx);
                     client.emit('erisa.commands.run', ctx);
                 } catch (err) {
-                    await ctx.send(`There was an error when trying to run your command:\n${mergedOpts.debug ? err.stack : err}`);
+                    if (errorHandler) await errorHandler(ctx, err, opts);
+                    else await defaults.errorHandler(ctx, err, opts);
                 }
             }
         ],
         [
             'ready',
             async function handler({erisa: client}) {
-                if (mergedOpts.autoLoad) {
-                    await holder.loadAll(mergedOpts.commandDirectory!, true);
+                if (opts.autoLoad) {
+                    await holder.loadAll(opts.commandDirectory!, true);
                     client.emit('erisa.commands.loaded');
                 }
             }

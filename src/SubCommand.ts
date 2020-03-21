@@ -1,6 +1,7 @@
 import Command from './Command';
 import Context from './Context';
 import {ICommandPermissions, ICommandOpts} from './';
+import {CommandPreCheck} from './types';
 
 interface ISubCommandOptions {
     name?: string;
@@ -27,6 +28,8 @@ export default class SubCommand implements Command {
     permissions?: ICommandPermissions;
     opts?: ICommandOpts;
     readonly subcommands: SubCommand[] = [];
+    readonly preChecks: CommandPreCheck[] = [];
+
     main: (ctx: Context) => Promise<any>;
 
     constructor(options: ISubCommandOptions, main: (ctx: Context) => Promise<any>) {
@@ -44,15 +47,15 @@ export default class SubCommand implements Command {
     }
 }
 
-export function decorator(options: ISubCommandOptions) {
-    return function __inner(target: any, property: string, descriptor: PropertyDescriptor) {
-        target['_' + property] = target[property];
+// export function decorator(options: ISubCommandOptions) {
+//     return function __inner(target: any, property: string, descriptor: PropertyDescriptor) {
+//         target['_' + property] = target[property];
 
-        options.name = options.name ? options.name.toLowerCase() : property.toLowerCase();
-        descriptor.value = () => new SubCommand(options, target['_' + property]);
+//         options.name = options.name ? options.name.toLowerCase() : property.toLowerCase();
+//         descriptor.value = () => new SubCommand(options, target['_' + property]);
 
-        Object.defineProperty(target, '_ ' + property, {
-            enumerable: false
-        });
-    };
-}
+//         Object.defineProperty(target, '_ ' + property, {
+//             enumerable: false
+//         });
+//     };
+// }

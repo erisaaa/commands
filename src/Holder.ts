@@ -4,6 +4,8 @@ import Command from './Command';
 import {PermissionStrings} from './Constants';
 import Context, {PermissionTargets} from './Context';
 import SubCommand from './SubCommand';
+import {PrefixParser} from './types';
+import {prefixParser} from './defaults';
 
 interface Ctor<T> {
     new(...args: any[]): T;
@@ -27,20 +29,27 @@ export default class Holder {
     readonly commands: Map<string, Command> = new Map<string, Command>();
     readonly aliases: Map<string, Command> = new Map<string, Command>();
     readonly modules: Map<string, string[]> = new Map<string, string[]>();
-    public loadCommands: boolean = true;
-    public useCommands: boolean = false;
-    public prefixes: (string | RegExp)[];
-    public owner: string;
-    public debug: boolean;
+    loadCommands: boolean = true;
+    useCommands: boolean = false;
+    prefixes: (string | RegExp)[];
+    owner: string;
+    debug: boolean;
+    private prefixParser?: PrefixParser;
+
+    testPrefix: (content: string) => ReturnType<PrefixParser> = this.prefixParser
+        ? (content: string) => this.prefixParser!(this.prefixes, content)
+        : (content: string) => prefixParser(this.prefixes, content);
 
     constructor(readonly client: Erisa, options: {
         prefixes: (string | RegExp)[];
         owner: string;
         debug: boolean;
+        prefixParser?: PrefixParser;
     }) {
         this.prefixes = options.prefixes;
         this.owner = options.owner;
         this.debug = options.debug;
+        this.prefixParser = this.prefixParser;
     }
 
     /**
@@ -161,13 +170,19 @@ export default class Holder {
 
         if (!cmd) return;
 
+        // TODO: use a map instead dummy
         if (ctx.args.length)
+            // TODO: did I forget to pop args?
             for (const arg of ctx.args)
                 if (cmd.subcommands.length && cmd.subcommands.find(sub => sub.name === arg))
                     cmd = cmd.subcommands.find(sub => sub.name === arg)!;
 
         if (cmd.guildOnly && !ctx.guild)
-            return void ctx.send('This command can only be run in a server.');
+            return ctx.send('This command can only be run in a server.');
+
+        if (cmd.preChecks.length)
+            for (const check of cmd.preChecks)
+                if (!await check(ctx)) return;
 
         if (cmd.ownerOnly && ctx.isBotOwner)
             await cmd.main(ctx);
@@ -194,7 +209,7 @@ export default class Holder {
      * @param ctx Context to compare with the command.
      * @returns First item is a boolean for whether or not all the checks are met. If false, the second item is the missing scope, and the third item is the missing permission.
      */
-    handlePermissions(cmd: Command, ctx: Context): [true] | [false, PermissionTargets, string] {
+    private handlePermissions(cmd: Command, ctx: Context): [true] | [false, PermissionTargets, string] {
         if (!cmd.permissions) return [true];
 
         const permChecks: {
@@ -271,21 +286,6 @@ export default class Holder {
 
             return [false, scope as PermissionTargets, missingPerm];
         }
-    }
-
-    testPrefix(content: string): [false] | [true, string] {
-        let ret: [false] | [true, string] = [false];
-
-        for (const prefix of this.prefixes)
-            if (typeof prefix === 'string' && content.startsWith(prefix)) {
-                ret = [true, content.slice(prefix.length).trim()];
-                break;
-            } else if (prefix instanceof RegExp && prefix.test(content) && content.match(prefix)![1]) {
-                ret = [true, content.match(prefix)![1].trim()];
-                break;
-            }
-
-        return ret;
     }
 
     /**

@@ -1,22 +1,24 @@
 import Context from './Context';
 import SubCommand from './SubCommand';
 import {ICommandPermissions, ICommandOpts} from './';
+import { CommandPreCheck } from './types';
+import Erisa from 'erisa';
 
 export default abstract class Command {
     name?: string;
-    abstract overview: string;
-    description?: string;
-    usage?: string;
-    ownerOnly?: boolean;
-    guildOnly?: boolean;
-    hidden?: boolean;
-    aliases?: string[];
-    category?: string;
-    permissions?: ICommandPermissions;
-    opts?: ICommandOpts;
+    abstract readonly overview: string;
+    readonly description?: string;
+    readonly usage?: string;
+    readonly ownerOnly?: boolean;
+    readonly guildOnly?: boolean;
+    readonly hidden?: boolean;
+    readonly aliases?: string[];
+    readonly category?: string;
+    readonly permissions?: ICommandPermissions;
+    readonly opts?: ICommandOpts;
     readonly subcommands: SubCommand[] = [];
+    readonly preChecks: CommandPreCheck[] = [];
 
-    // constructor(readonly client: Erisa) {}
     async init?(): Promise<void>;
     abstract async main(ctx: Context): Promise<any>;
 }
